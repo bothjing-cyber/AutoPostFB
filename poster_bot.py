@@ -40,6 +40,7 @@ from telegram import (
 )
 from telegram.ext import (
     Application,
+    CommandHandler,
     MessageHandler,
     CallbackQueryHandler,
     filters,
@@ -50,15 +51,15 @@ from telegram.ext import (
 # CONFIG  — fill these in. On Railway, set them as Variables
 # and they'll be read from the environment automatically.
 # ============================================================
-BOT_TOKEN        = os.environ.get("BOT_TOKEN", "8647737480:AAEwiw0S18qTJ33OVwHZoYnxtEHD2wR_URE")
-OWNER_ID         = int(os.environ.get("6737634349", "0"))          # your telegram user id
-TELEGRAM_CHANNEL = os.environ.get("https://t.me/toyota_Sokharatith", "@yourchannel")
-FB_PAGE_ID       = os.environ.get("FB_PAGE_ID", "1339318928160765")
-FB_PAGE_TOKEN    = os.environ.get("FB_PAGE_TOKEN", "EAATCGnz0NZC0BR2409YP3ps7mof2uidVXcZA6squhMNOfOzI6IvZBek7zyPUfAW0EsZBeAcK3WxZAUZAFafrq4VhQyFVM5KYDGq3XFFR0wZBRwt387RVXZBZCQ5evekd6oeYtxNWljTZCKDwpXGVuAomu6coFM5JJlw385pcmw3aFBt6AZAih9Xp6260ZCGQJV5WXiVJaJaKxQ1ZACfw2D8pIWNjZBtsTA79GsPXbq6U9n7KjkFNyZCqDfZB1h0hZBPKChV0XNxoycotKFHBH1WVjnc4Rf5MBexSHPnwEIyTPiGMZD")
+BOT_TOKEN        = os.environ.get("BOT_TOKEN", "PUT_BOT_TOKEN_HERE")
+OWNER_ID         = int(os.environ.get("OWNER_ID", "0"))          # your telegram user id
+TELEGRAM_CHANNEL = os.environ.get("TELEGRAM_CHANNEL", "@yourchannel")
+FB_PAGE_ID       = os.environ.get("FB_PAGE_ID", "PUT_PAGE_ID_HERE")
+FB_PAGE_TOKEN    = os.environ.get("FB_PAGE_TOKEN", "PUT_PAGE_TOKEN_HERE")
 
-CONTACT_USERNAME = os.environ.get("CONTACT_USERNAME", "bosokhara.tith")  # no @
-CONTACT_PHONE    = os.environ.get("CONTACT_PHONE", "+85517333762")
-MORE_LINK        = os.environ.get("MORE_LINK", "https://web.facebook.com/toyotacambodiabosokhara")
+CONTACT_USERNAME = os.environ.get("CONTACT_USERNAME", "yourusername")  # no @
+CONTACT_PHONE    = os.environ.get("CONTACT_PHONE", "+855000000000")
+MORE_LINK        = os.environ.get("MORE_LINK", "https://facebook.com/yourpage")
 
 # ============================================================
 logging.basicConfig(
@@ -95,6 +96,26 @@ def destination_menu(kind: str) -> InlineKeyboardMarkup:
         rows.append([InlineKeyboardButton("2️⃣ TikTok (coming soon)", callback_data="route2")])
     rows.append([InlineKeyboardButton("❌ Cancel", callback_data="cancel")])
     return InlineKeyboardMarkup(rows)
+
+
+# ------------------------------------------------------------
+# /start — a friendly greeting so the bot isn't silent
+# ------------------------------------------------------------
+async def on_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+
+    if OWNER_ID and user_id != OWNER_ID:
+        await update.message.reply_text("Sorry, this bot is private.")
+        return
+
+    await update.message.reply_text(
+        "👋 Ready to post.\n\n"
+        "Send me a *photo* or a *video* (add your caption with it), "
+        "and I'll show you where to post it.\n\n"
+        "Tip: tap the 📎 clip icon, pick a photo, type your caption, send.\n"
+        "Plain text on its own won't do anything — I need a photo or video.",
+        parse_mode="Markdown",
+    )
 
 
 # ------------------------------------------------------------
@@ -239,6 +260,8 @@ def post_to_facebook(kind: str, file_path: str, caption: str):
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
+    # /start -> friendly greeting
+    app.add_handler(CommandHandler("start", on_start))
     # Any photo or video you send privately -> on_content
     app.add_handler(MessageHandler(filters.PHOTO | filters.VIDEO, on_content))
     # Button taps -> on_choice
