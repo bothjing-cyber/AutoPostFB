@@ -80,7 +80,7 @@ def channel_buttons() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([
         [
             InlineKeyboardButton("💬 Message us", url=f"https://t.me/{CONTACT_USERNAME}"),
-            InlineKeyboardButton("📞 Call", url=f"tel:{CONTACT_PHONE}"),
+            InlineKeyboardButton("📞 Call", callback_data="call"),
         ],
         [InlineKeyboardButton("🔗 More", url=MORE_LINK)],
     ])
@@ -154,8 +154,15 @@ async def on_content(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ------------------------------------------------------------
 async def on_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    await query.answer()
     user_id = query.from_user.id
+
+    # The "Call" button is public — anyone viewing the channel can tap it.
+    # Show the phone number in a popup. (Telegram blocks tel: links on buttons.)
+    if query.data == "call":
+        await query.answer(text=f"📞 Call us: {CONTACT_PHONE}", show_alert=True)
+        return
+
+    await query.answer()
 
     if OWNER_ID and user_id != OWNER_ID:
         return
